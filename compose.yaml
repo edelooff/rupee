@@ -1,0 +1,8 @@
+services:
+  app:
+    image: ruby:3-slim
+    init: true
+    working_dir: /workdir
+    volumes:
+      - .:/workdir:cached
+      - .bundle:/usr/local/bundle:cached
