@@ -46,12 +46,17 @@ module Parser
 
     def apply(stack)
       operands = stack.pop @func.arity
+      if operands.length != @func.arity
+        have = operands.length
+        want = @func.arity
+        raise ArgumentError, "Not enough operands remain for #{name} (#{have} out of #{want})"
+      end
+
       @func.call(*operands)
     end
   end
 
   OPERATORS = [
-    # Operator.new(' ', 'NOP', -> {}),
     Operator.new('+', 'ADD', ->(a, b) { a + b }),
     Operator.new('-', 'SUB', ->(a, b) { a - b }),
     Operator.new('*', 'MUL', ->(a, b) { a * b }),

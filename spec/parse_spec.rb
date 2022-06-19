@@ -1,6 +1,6 @@
 require 'rupee'
 
-describe 'tokenize' do
+describe 'Parser::tokenize' do
   context 'given an empty string' do
     it 'returns an empty array of tokens' do
       expect(Parser.tokenize('')).to eq([])
@@ -34,6 +34,52 @@ describe 'tokenize' do
   context 'given mix of numbers and tokens' do
     it 'given 12 5+' do
       expect(Parser.tokenize('12 5+')).to eq([12, 5, Parser::TOKEN['ADD']])
+    end
+  end
+end
+
+describe 'Parser::Operator' do
+  context 'public properties' do
+    let(:token) { 'T' }
+    let(:name) { 'name' }
+    let(:operator) { Parser::Operator.new(token, name, :puts) }
+
+    it 'token provides the character the operator is parsed from' do
+      expect(operator.token).to eq(token)
+    end
+    it 'name provides is a short-hand representation' do
+      expect(operator.name).to eq(name)
+    end
+  end
+
+  context 'application' do
+    context 'consumes :arity values from the stack and returns the function result' do
+      it 'given a 0-arg function, returns a static result' do
+        operator = Parser::Operator.new('0', 'NOP', -> { 'dummy' })
+        stack = ['sentinel']
+        expect(operator.apply(stack)).to eq('dummy')
+        expect(stack).to eq(['sentinel'])
+      end
+
+      it 'given a 1-arity function, consumes from the stack and returns the result' do
+        operator = Parser::Operator.new('~', 'INV', ->(n) { -n })
+        stack = [10]
+        expect(operator.apply(stack)).to eq(-10)
+        expect(stack).to be_empty
+      end
+
+      it 'given a 2-arity function, applies stack in oldest->newest fashion' do
+        operator = Parser::Operator.new('~', 'SUB', ->(a, b) { a - b })
+        stack = [10, 5]
+        expect(operator.apply(stack)).to eq(5)
+        expect(stack).to be_empty
+      end
+
+      it 'given a stack smaller than the function arity, raises ArgumentError' do
+        operator = Parser::Operator.new('~', 'SUB', ->(a, b) { a - b })
+        stack = [10]
+        expect { operator.apply(stack) }.to raise_error(ArgumentError, /Not enough operands remain/)
+      end
     end
   end
 end
