@@ -1,0 +1,15 @@
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*.rb
+
+Metrics/MethodLength:
+  Enabled: true
+  CountComments: false
+  Max: 20
+
+Metrics/ModuleLength:
+  Exclude:
+    - spec/**/*.rb
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
