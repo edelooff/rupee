@@ -19,7 +19,7 @@ module Parser
         next
       end
       tokens.push(to_numeric(number)) if number != ''
-      tokens.push(TOKEN_LOOKUP[token]) if token != ' '
+      tokens.push(OPERATOR.lookup(token)) if token != ' '
       number = ''
     end
     tokens.push(to_numeric(number)) if number != ''
@@ -36,32 +36,51 @@ module Parser
 
   # Returns a function that can be applied to a stack, yielding a scalar result.
   class Operator
-    def initialize(token, name, func)
-      @token = token
-      @name = name
+    attr_reader :name
+
+    def initialize(name, func)
+      @name = name.intern
       @func = func
     end
-
-    attr_reader :name, :token
 
     def apply(stack)
       operands = stack.pop @func.arity
       if operands.length != @func.arity
-        have = operands.length
-        want = @func.arity
-        raise ArgumentError, "Not enough operands remain for #{name} (#{have} out of #{want})"
+        raise ArgumentError, <<~ERR.chomp
+          Not enough operands available for operation #{name}.
+          Require #{@func.arity} but only #{operands.length} are available.
+        ERR
       end
 
       @func.call(*operands)
     end
   end
 
-  OPERATORS = [
-    Operator.new('+', 'ADD', ->(a, b) { a + b }),
-    Operator.new('-', 'SUB', ->(a, b) { a - b }),
-    Operator.new('*', 'MUL', ->(a, b) { a * b }),
-    Operator.new('/', 'DIV', ->(a, b) { a / b })
-  ].freeze
-  TOKEN = Hash[OPERATORS.map { |oper| [oper.name, oper] }].freeze
-  TOKEN_LOOKUP = Hash[OPERATORS.map { |oper| [oper.token, oper] }].freeze
+  # Provides a collection of Operator instances
+  #
+  # Operators are exported as methods based on their #name
+  # The #lookup method provides a means of finding an Operator by its token
+  class OperatorRegistry
+    def initialize(operators)
+      @lookup = {}
+
+      operators.each do |token, operator|
+        @lookup[token.intern] = operator
+        define_singleton_method(operator.name) { operator }
+      end
+    end
+
+    def lookup(token)
+      @lookup[token.intern]
+    end
+  end
+
+  OPERATOR = OperatorRegistry.new(
+    {
+      '+': Operator.new(:ADD, ->(a, b) { a + b }),
+      '-': Operator.new(:SUB, ->(a, b) { a - b }),
+      '*': Operator.new(:MUL, ->(a, b) { a * b }),
+      '/': Operator.new(:DIV, ->(a, b) { a / b })
+    }
+  )
 end

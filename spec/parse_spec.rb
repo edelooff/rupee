@@ -33,83 +33,81 @@ describe 'Parser::tokenize' do
 
   context 'given mix of numbers and tokens' do
     it 'given 12 5+' do
-      expect(Parser.tokenize('12 5+')).to eq([12, 5, Parser::TOKEN['ADD']])
+      expect(Parser.tokenize('12 5+')).to eq([12, 5, Parser::OPERATOR.ADD])
     end
   end
 end
 
 describe 'Parser::Operator' do
-  context 'public properties' do
-    let(:token) { 'T' }
-    let(:name) { 'name' }
-    let(:operator) { Parser::Operator.new(token, name, :puts) }
+  context 'creation' do
+    let(:name) { 'mnemonic' }
+    let(:operator) { Parser::Operator.new(name, :puts) }
 
-    it 'token provides the character the operator is parsed from' do
-      expect(operator.token).to eq(token)
-    end
-    it 'name provides is a short-hand representation' do
-      expect(operator.name).to eq(name)
+    it 'name provides a short-hand representation (as symbol)' do
+      expect(operator.name).to eq(name.intern)
     end
   end
 
   context 'application' do
     context 'consumes :arity values from the stack and returns the function result' do
       it 'given a 0-arg function, returns a static result' do
-        operator = Parser::Operator.new('0', 'NOP', -> { 'dummy' })
+        operator = Parser::Operator.new('NOP', -> { 'dummy' })
         stack = ['sentinel']
         expect(operator.apply(stack)).to eq('dummy')
         expect(stack).to eq(['sentinel'])
       end
 
       it 'given a 1-arity function, consumes from the stack and returns the result' do
-        operator = Parser::Operator.new('~', 'INV', ->(n) { -n })
+        operator = Parser::Operator.new('INV', ->(n) { -n })
         stack = [10]
         expect(operator.apply(stack)).to eq(-10)
         expect(stack).to be_empty
       end
 
       it 'given a 2-arity function, applies stack in oldest->newest fashion' do
-        operator = Parser::Operator.new('~', 'SUB', ->(a, b) { a - b })
+        operator = Parser::Operator.new('SUB', ->(a, b) { a - b })
         stack = [10, 5]
         expect(operator.apply(stack)).to eq(5)
         expect(stack).to be_empty
       end
 
       it 'given a stack smaller than the function arity, raises ArgumentError' do
-        operator = Parser::Operator.new('~', 'SUB', ->(a, b) { a - b })
+        operator = Parser::Operator.new('SUB', ->(a, b) { a - b })
         stack = [10]
-        expect { operator.apply(stack) }.to raise_error(ArgumentError, /Not enough operands remain/)
+        expect { operator.apply(stack) }.to raise_error(
+          ArgumentError, /^Not enough operands available for operation SUB/
+        )
       end
     end
   end
 end
 
-describe 'Parser::TOKEN' do
+describe 'Parser::OPERATOR' do
   context '+ addition' do
     it 'given a stack [sentinel, 12, 13]' do
       stack = ['sentinel', 12, 13]
-      expect(Parser::TOKEN['ADD'].apply(stack)).to eq(25)
+      expect(Parser::OPERATOR.ADD.apply(stack)).to eq(25)
       expect(stack).to eq(['sentinel'])
     end
   end
   context '- subtraction' do
     it 'given a stack [sentinel, 100, 58]' do
       stack = ['sentinel', 100, 58]
-      expect(Parser::TOKEN['SUB'].apply(stack)).to eq(42)
+      expect(Parser::OPERATOR.SUB.apply(stack)).to eq(42)
       expect(stack).to eq(['sentinel'])
     end
   end
   context '* multiplication' do
     it 'given a stack [sentinel, 6, 7]' do
       stack = ['sentinel', 6, 7]
-      expect(Parser::TOKEN['MUL'].apply(stack)).to eq(42)
+      expect(Parser::OPERATOR.MUL.apply(stack)).to eq(42)
       expect(stack).to eq(['sentinel'])
     end
   end
   context '/ division' do
     it 'given a stack [sentinel, 42, 6]' do
       stack = ['sentinel', 42, 6]
-      expect(Parser::TOKEN['DIV'].apply(stack)).to eq(7)
+      expect(Parser::OPERATOR.DIV.apply(stack)).to eq(7)
       expect(stack).to eq(['sentinel'])
     end
   end
