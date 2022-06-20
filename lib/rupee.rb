@@ -1,7 +1,27 @@
-# A simply calculator
 module Rupee
-  def self.calc
-    'Calculating ...'
+  # Reverse polish calculator, operating on a stream of mixed numbers and operators
+  class Calculator
+    attr_reader :stack
+
+    def initialize
+      @stack = []
+    end
+
+    def result
+      stack[-1]
+    end
+
+    def <<(input_string)
+      process(*Parser.tokenize(input_string))
+    end
+
+    private
+
+    def process(*tokens)
+      tokens.each do |token|
+        @stack.push token.is_a?(Parser::Operator) ? token.apply(@stack) : token
+      end
+    end
   end
 end
 
@@ -13,7 +33,7 @@ module Parser
     # Returns a tokenized version of the string, with numbers and operators separated
     tokens = []
     number = ''
-    input.split('').each do |token|
+    input.each_char do |token|
       if token =~ /[\d.]/
         number += token
         next
