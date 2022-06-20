@@ -44,15 +44,13 @@ module Parser
     end
 
     def apply(stack)
-      operands = stack.pop @func.arity
-      if operands.length != @func.arity
-        raise ArgumentError, <<~ERR.chomp
-          Not enough operands available for operation #{name}.
-          Require #{@func.arity} but only #{operands.length} are available.
-        ERR
+      if stack.length < @func.arity
+        raise ArgumentError, \
+              "Not enough operands available for operation #{name}. " \
+              "Require #{@func.arity} but only #{stack.length} are available."
       end
 
-      @func.call(*operands)
+      @func.call(*stack.pop(@func.arity))
     end
   end
 
