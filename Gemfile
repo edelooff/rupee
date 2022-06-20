@@ -1,6 +1,10 @@
 # Gemfile
 source "https://rubygems.org"
 
-gem "rspec"
-gem "rspec-parameterized"
-gem "rubocop"
+group :test do
+  gem "rspec"
+  gem "rspec-parameterized"
+  gem "rubocop"
+  gem "simplecov"
+  gem "simplecov-console"
+end
