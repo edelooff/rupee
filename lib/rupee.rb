@@ -13,6 +13,7 @@ module Rupee
 
     def <<(input_string)
       process(*Parser.tokenize(input_string))
+      self
     end
 
     private

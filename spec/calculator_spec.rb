@@ -83,4 +83,16 @@ describe 'Calculator' do
       end
     end
   end
+
+  context 'given chained token sequences' do
+    it 'interprets each string individually, building up the stack' do
+      calculator << '5' << '6'
+      expect(calculator.stack).to eq [5, 6]
+    end
+
+    it 'allows for operators to be disconnected from numbers' do
+      calculator << '5' << '6 4' << '-' << '*'
+      expect(calculator.result).to eq 10
+    end
+  end
 end
