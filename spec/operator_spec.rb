@@ -63,4 +63,15 @@ describe 'Rupee::OperatorRegistry' do
       )
     end
   end
+
+  context 'given two operators with the same name' do
+    let(:operator) { Rupee::Operator.new(:ADD, -> { :dummy }) }
+    let(:operator_hash) { { '+': operator, '$': operator } }
+
+    it 'raises an error' do
+      expect { Rupee::OperatorRegistry.new(operator_hash) }.to raise_error(
+        ArgumentError, /Operator with name 'ADD' already provided/
+      )
+    end
+  end
 end

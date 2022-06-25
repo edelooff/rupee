@@ -107,6 +107,8 @@ module Rupee
 
       operators.each do |token, operator|
         @lookup[token.intern] = operator
+        raise ArgumentError, "Operator with name '#{operator.name}' already provided" if respond_to? operator.name
+
         define_singleton_method(operator.name) { operator }
       end
     end
