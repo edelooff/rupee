@@ -67,7 +67,8 @@ describe 'Calculator' do
     where do
       {
         'addition: 30 + 12' => { instruction: '30 12+', result: 42 },
-        'repeated addition: 2 + 3 + 5' => { instruction: '2 3 5++', result: 10 },
+        'addition (precise): 0.1 + 0.2' => { instruction: '0.1 0.2+', result: 0.3 },
+        'addition (repeated): 2 + 3 + 5' => { instruction: '2 3 5++', result: 10 },
         'subtraction: 8 - 50' => { instruction: '8 50-', result: -42 },
         'multiplication: 6 * 7' => { instruction: '6 7*', result: 42 },
         'division (int): 42 / 6' => { instruction: '42 6 /', result: 7 },

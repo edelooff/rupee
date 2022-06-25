@@ -1,3 +1,5 @@
+require 'bigdecimal'
+
 module Rupee
   # Reverse polish calculator, operating on a stream of mixed numbers and operators
   class Calculator
@@ -45,11 +47,11 @@ module Rupee
           number += token
           next
         end
-        tokens.push(Float(number)) if number != ''
+        tokens.push(BigDecimal(number)) if number != ''
         tokens.push(@operators.lookup(token)) if token != ' '
         number = ''
       end
-      tokens.push(Float(number)) if number != ''
+      tokens.push(BigDecimal(number)) if number != ''
       tokens
     end
 
