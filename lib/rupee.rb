@@ -1,9 +1,10 @@
 module Rupee
   # Reverse polish calculator, operating on a stream of mixed numbers and operators
   class Calculator
-    attr_reader :stack
+    attr_reader :parser, :stack
 
-    def initialize
+    def initialize(parser: Parser.default)
+      @parser = parser
       @stack = []
     end
 
@@ -12,7 +13,7 @@ module Rupee
     end
 
     def <<(input_string)
-      process(*Parser.tokenize(input_string))
+      process(*@parser.tokenize(input_string))
       self
     end
 
@@ -20,38 +21,59 @@ module Rupee
 
     def process(*tokens)
       tokens.each do |token|
-        @stack.push token.is_a?(Parser::Operator) ? token.apply(@stack) : token
+        @stack.push token.is_a?(Operator) ? token.apply(@stack) : token
       end
     end
   end
-end
 
-##
-# Methods for converting the string input into a stream of numbers and operations
-#
-module Parser
-  def self.tokenize(input)
-    # Returns a tokenized version of the string, with numbers and operators separated
-    tokens = []
-    number = ''
-    input.each_char do |token|
-      if token =~ /[\d.]/
-        number += token
-        next
+  ##
+  # The Parser converts input strings into a token stream of numbers and operations.
+  #
+  class Parser
+    attr_reader :operators
+
+    def initialize(operators)
+      @operators = operators
+    end
+
+    def tokenize(input)
+      # Returns a tokenized version of the string, with numbers and operators separated
+      tokens = []
+      number = ''
+      input.each_char do |token|
+        if token =~ /[\d.]/
+          number += token
+          next
+        end
+        tokens.push(to_numeric(number)) if number != ''
+        tokens.push(@operators.lookup(token)) if token != ' '
+        number = ''
       end
       tokens.push(to_numeric(number)) if number != ''
-      tokens.push(OPERATOR.lookup(token)) if token != ' '
-      number = ''
+      tokens
     end
-    tokens.push(to_numeric(number)) if number != ''
-    tokens
-  end
 
-  def self.to_numeric(string)
-    if string =~ /^\d+$/
-      Integer string
-    else
-      Float string
+    # Returns a Parser with a default set of mapped Operators.
+    def self.default
+      operators = OperatorRegistry.new(
+        {
+          '+': Operator.new(:ADD, ->(a, b) { a + b }),
+          '-': Operator.new(:SUB, ->(a, b) { a - b }),
+          '*': Operator.new(:MUL, ->(a, b) { a * b }),
+          '/': Operator.new(:DIV, ->(a, b) { a / b })
+        }
+      )
+      Parser.new(operators)
+    end
+
+    private
+
+    def to_numeric(string)
+      if string =~ /^\d+$/
+        Integer string
+      else
+        Float string
+      end
     end
   end
 
@@ -93,13 +115,4 @@ module Parser
       @lookup[token.intern]
     end
   end
-
-  OPERATOR = OperatorRegistry.new(
-    {
-      '+': Operator.new(:ADD, ->(a, b) { a + b }),
-      '-': Operator.new(:SUB, ->(a, b) { a - b }),
-      '*': Operator.new(:MUL, ->(a, b) { a * b }),
-      '/': Operator.new(:DIV, ->(a, b) { a / b })
-    }
-  )
 end
