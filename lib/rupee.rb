@@ -45,11 +45,11 @@ module Rupee
           number += token
           next
         end
-        tokens.push(to_numeric(number)) if number != ''
+        tokens.push(Float(number)) if number != ''
         tokens.push(@operators.lookup(token)) if token != ' '
         number = ''
       end
-      tokens.push(to_numeric(number)) if number != ''
+      tokens.push(Float(number)) if number != ''
       tokens
     end
 
@@ -64,16 +64,6 @@ module Rupee
         }
       )
       Parser.new(operators)
-    end
-
-    private
-
-    def to_numeric(string)
-      if string =~ /^\d+$/
-        Integer string
-      else
-        Float string
-      end
     end
   end
 
