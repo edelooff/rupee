@@ -112,6 +112,9 @@ module Rupee
     end
 
     def lookup(token)
+      key = token.intern
+      raise IndexError, "No operator registered for token '#{key}'" unless @lookup.key? key
+
       @lookup[token.intern]
     end
   end

@@ -45,7 +45,7 @@ describe 'Rupee::Operator' do
 end
 
 describe 'Rupee::OperatorRegistry' do
-  context 'given an operator hash to create from' do
+  context 'given a token=>operator hash to create the registry' do
     let(:operator) { Rupee::Operator.new(:ADD, ->(a, b) { a + b }) }
     let(:registry) { Rupee::OperatorRegistry.new({ '+': operator }) }
 
@@ -55,6 +55,12 @@ describe 'Rupee::OperatorRegistry' do
 
     it 'exposes the operator as public method based on its name' do
       expect(registry.ADD).to be operator
+    end
+
+    it 'raises when looking up a non-existant operator' do
+      expect { registry.lookup('x') }.to raise_error(
+        IndexError, /No operator registered for token 'x'/
+      )
     end
   end
 end
