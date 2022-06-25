@@ -107,15 +107,17 @@ module Rupee
 
       operators.each do |token, operator|
         @lookup[token.intern] = operator
-        raise ArgumentError, "Operator with name '#{operator.name}' already provided" if respond_to? operator.name
+        if respond_to? operator.name
+          raise ArgumentError, "Operator with name '#{operator.name}' already provided"
+        end
 
         define_singleton_method(operator.name) { operator }
       end
     end
 
     def lookup(token)
-      key = token.intern
-      raise IndexError, "No operator registered for token '#{key}'" unless @lookup.key? key
+      unregistered = !@lookup.key?(token.intern)
+      raise IndexError, "No operator registered for token '#{token}'" if unregistered
 
       @lookup[token.intern]
     end
