@@ -48,7 +48,7 @@ module Rupee
           next
         end
         tokens.push(BigDecimal(number)) if number != ''
-        tokens.push(@operators.lookup(token)) if token != ' '
+        tokens.push(@operators.lookup(token.intern)) if token != ' '
         number = ''
       end
       tokens.push(BigDecimal(number)) if number != ''
@@ -81,7 +81,7 @@ module Rupee
     def apply(stack)
       if stack.length < @func.arity
         raise ArgumentError, \
-              "Not enough operands available for operation #{name}. " \
+              "Not enough operands available for operation #{name.inspect}. " \
               "Require #{@func.arity} but only #{stack.length} are available."
       end
 
@@ -98,9 +98,10 @@ module Rupee
       @lookup = {}
 
       operators.each do |token, operator|
-        @lookup[token.intern] = operator
+        @lookup[token] = operator
         if respond_to? operator.name
-          raise ArgumentError, "Operator with name '#{operator.name}' already provided"
+          opname = operator.name.inspect
+          raise ArgumentError, "Operator with name #{opname} already provided"
         end
 
         define_singleton_method(operator.name) { operator }
@@ -108,10 +109,11 @@ module Rupee
     end
 
     def lookup(token)
-      unregistered = !@lookup.key?(token.intern)
-      raise IndexError, "No operator registered for token '#{token}'" if unregistered
+      unless @lookup.key? token
+        raise IndexError, "No operator registered for token #{token.inspect}"
+      end
 
-      @lookup[token.intern]
+      @lookup[token]
     end
   end
 end

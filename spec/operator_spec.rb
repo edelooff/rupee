@@ -37,7 +37,7 @@ describe 'Rupee::Operator' do
         operator = Rupee::Operator.new('SUB', ->(a, b) { a - b })
         stack = [10]
         expect { operator.apply(stack) }.to raise_error(
-          ArgumentError, /^Not enough operands available for operation SUB/
+          ArgumentError, /^Not enough operands available for operation :SUB/
         )
       end
     end
@@ -49,17 +49,23 @@ describe 'Rupee::OperatorRegistry' do
     let(:operator) { Rupee::Operator.new(:ADD, ->(a, b) { a + b }) }
     let(:registry) { Rupee::OperatorRegistry.new({ '+': operator }) }
 
-    it 'returns the operator by token from the lookup metod' do
-      expect(registry.lookup('+')).to be operator
+    it 'returns the operator by token from the lookup method' do
+      expect(registry.lookup(:+)).to be operator
     end
 
     it 'exposes the operator as public method based on its name' do
       expect(registry.ADD).to be operator
     end
 
-    it 'raises when looking up a non-existant operator' do
+    it 'raises when looking up a non-existant operator by string' do
       expect { registry.lookup('x') }.to raise_error(
-        IndexError, /No operator registered for token 'x'/
+        IndexError, /No operator registered for token "x"/
+      )
+    end
+
+    it 'raises when looking up a non-existant operator by symbol' do
+      expect { registry.lookup(:&) }.to raise_error(
+        IndexError, /No operator registered for token :&/
       )
     end
   end
@@ -70,7 +76,7 @@ describe 'Rupee::OperatorRegistry' do
 
     it 'raises an error' do
       expect { Rupee::OperatorRegistry.new(operator_hash) }.to raise_error(
-        ArgumentError, /Operator with name 'ADD' already provided/
+        ArgumentError, /Operator with name :ADD already provided/
       )
     end
   end
